@@ -9,6 +9,7 @@
  *              can be used to time chess games. It
  *              includes game setup where the user can
  *              set the time control and increment.
+ *
  * GitHub: https://github.com/Jrmuys/chess-timer
  **************************************************/
 
@@ -32,9 +33,10 @@
 #define I2C_ADDRESS 0x3C
 #define I2C_ADDRESS_2 0x3D
 
-// Define proper RST_PIN if required.
+// Reset pin -1, not using common reset pin
 #define RST_PIN -1
 
+// Define play states
 #define PLAYING 0
 #define SELECT 1
 #define END 2
@@ -50,7 +52,9 @@ volatile byte controlPressed = HIGH;
 volatile byte state = LOW;
 volatile byte control = LOW;
 
+// Time options in milliseconds
 long timeOptions[7] = {180000, 300000, 600000, 900000, 1200000, 1800000, 5000}; // 3600000
+// Increment options in seconds
 int incrementOptions[6] = {0, 1, 2, 10, 45};
 
 int lastMs = 0;
@@ -72,8 +76,21 @@ int white = 0;
 unsigned long lastDebounceTime = 0;
 unsigned long debounceDelay = 50;
 
+int time = 60 * 5 * 100;
+
 String toTimeString(long hundredths);
 
+/**
+ * Debounce button inputs
+ *
+ * All buttons use pull-up resistors, so the default state is HIGH.
+ * When the button is pressed, the button state changes to LOW, but
+ * to debounce the button, the state mush not change for a certain
+ * amount of time.
+ *
+ * @param pin The pin to read from
+ * @return The debounced input of the pin
+ */
 boolean debounce(int pin)
 {
   if (digitalRead(pin))
@@ -97,9 +114,9 @@ boolean debounce(int pin)
   }
 }
 
-int time = 60 * 5 * 100;
 void setup()
 {
+
 #if RST_PIN >= 0
   oled.begin(&Adafruit128x64, I2C_ADDRESS, RST_PIN);
   oled2.begin(&Adafruit128x64, I2C_ADDRESS_2, RST_PIN);
@@ -110,19 +127,19 @@ void setup()
 
 #endif // RST_PIN >= 0
 
-  // Call oled.setI2cClock(frequency) to change from the default frequency.
-
   oled.setFont(Adafruit5x7);
   oled2.setFont(Adafruit5x7);
 
+  // Start serial port
   Serial.begin(9600);
   Serial.println("Beginning Chess Clock Test...");
 
+  // Set up button pins
   pinMode(BUTTON_PIN1, INPUT_PULLUP);
   pinMode(BUTTON_PIN2, INPUT_PULLUP);
   pinMode(BUTTON_PIN3, INPUT_PULLUP);
-  oled.println("Time Control:");
 
+  // Set up LEDs
   pinMode(LED_1, OUTPUT);
   pinMode(LED_2, OUTPUT);
   pinMode(LED_3, OUTPUT);
@@ -131,6 +148,8 @@ void setup()
   digitalWrite(LED_2, HIGH);
   digitalWrite(LED_3, HIGH);
 
+  // Set up initial display state
+  oled.println("Time Control:");
   oled.setRow(2);
   oled.setFont(fixednums15x31);
 
@@ -141,6 +160,9 @@ void setup()
   oled.println("Use buttons to scroll");
 }
 
+/**
+ * Reset the state of the chess clock
+ */
 void reset()
 {
   selectState = 0;
@@ -324,6 +346,8 @@ void loop()
       {
         if (!b3Pressed)
         {
+          // Setup for start of game
+
           oled2.setFont(Adafruit5x7);
           oled2.setRow(7);
           oled2.clearToEOL();
@@ -364,7 +388,7 @@ void loop()
       }
     }
   }
-  else if (mode == PLAYING)
+  else if (mode == PLAYING) // Playing state
   {
     if (debounce(BUTTON_PIN3))
     {
