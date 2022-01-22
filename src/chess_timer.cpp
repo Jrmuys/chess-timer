@@ -1,15 +1,16 @@
 /**************************************************
  * ChessTimer
- * 
+ *
  * Author: Joel Muyskens
  * Date:   2014-04-01
  * Version: 1.0
- * 
- * Description: ChessTimer is an arduino program that 
+ *
+ * Description: ChessTimer is an arduino program that
  *              can be used to time chess games. It
  *              includes game setup where the user can
  *              set the time control and increment.
- * GitHub: 
+ * GitHub: https://github.com/Jrmuys/chess-timer
+ **************************************************/
 
 #include <Arduino.h>
 #include <SPI.h>
